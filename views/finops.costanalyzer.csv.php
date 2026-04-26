@@ -6,13 +6,19 @@
  * @var array $data
  */
 
-$csv = '';
+function finops_csv_escape($value): string {
+	return '"'.str_replace('"', '""', (string) $value).'"';
+}
+
+function finops_csv_row(array $values): string {
+	return implode(',', $values)."\n";
+}
 
 // BOM for UTF-8 compatibility with Excel.
-$csv .= "\xEF\xBB\xBF";
+echo "\xEF\xBB\xBF";
 
 // Header row.
-$csv .= implode(',', [
+echo finops_csv_row([
 	'"Host"',
 	'"Host Group"',
 	'"CPU Avg %"',
@@ -36,7 +42,7 @@ $csv .= implode(',', [
 	'"CPU Trend"',
 	'"RAM Trend"',
 	'"Recommendation"'
-])."\n";
+]);
 
 foreach ($data['results'] as $r) {
 	$waste_level = '';
@@ -54,9 +60,9 @@ foreach ($data['results'] as $r) {
 		else $eff_level = 'High waste';
 	}
 
-	$csv .= implode(',', [
-		'"'.str_replace('"', '""', $r['host_name']).'"',
-		'"'.str_replace('"', '""', $r['host_groups'] ?? '').'"',
+	echo finops_csv_row([
+		finops_csv_escape($r['host_name']),
+		finops_csv_escape($r['host_groups'] ?? ''),
 		($r['cpu_avg'] !== null) ? $r['cpu_avg'] : '',
 		($r['cpu_max'] !== null) ? $r['cpu_max'] : '',
 		($r['ram_avg'] !== null) ? $r['ram_avg'] : '',
@@ -77,8 +83,6 @@ foreach ($data['results'] as $r) {
 		($r['ram_recommended_gb'] !== null) ? $r['ram_recommended_gb'] : '',
 		($r['cpu_trend'] !== null) ? $r['cpu_trend'] : '',
 		($r['ram_trend'] !== null) ? $r['ram_trend'] : '',
-		'"'.str_replace('"', '""', $r['recommendation']).'"'
-	])."\n";
+		finops_csv_escape($r['recommendation'])
+	]);
 }
-
-echo $csv;

@@ -68,6 +68,31 @@
     }
 
     /**
+     * Native Zabbix tag filter row handling.
+     */
+    function initTagFilter() {
+        if (!window.jQuery || !jQuery.fn.dynamicRows || !document.querySelector('#filter-tags')) {
+            return;
+        }
+
+        jQuery('#filter-tags')
+            .dynamicRows({template: '#filter-tag-row-tmpl'})
+            .on('afteradd.dynamicRows', function() {
+                const rows = this.querySelectorAll('.form_row');
+
+                if (window.CTagFilterItem) {
+                    new CTagFilterItem(rows[rows.length - 1]);
+                }
+            });
+
+        if (window.CTagFilterItem) {
+            document.querySelectorAll('#filter-tags .form_row').forEach(row => {
+                new CTagFilterItem(row);
+            });
+        }
+    }
+
+    /**
      * Initialize
      */
     function init() {
@@ -78,6 +103,7 @@
         initKeyboardNav();
         initSortFeedback();
         initExportBtn();
+        initTagFilter();
     }
 
     if (document.readyState === 'loading') {

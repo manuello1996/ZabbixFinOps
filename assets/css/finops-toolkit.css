@@ -16,7 +16,7 @@
     --fn-success: #16a34a;
     --fn-warning: #ca8a04;
     --fn-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --fn-font-mono: "SF Mono", Monaco, "Cascadia Code", monospace;
+    --fn-font-mono: monospace;
     --fn-space-xs: 4px;
     --fn-space-sm: 8px;
     --fn-space-md: 16px;
@@ -276,24 +276,86 @@ html[theme="hc-dark"] .finops-container {
     overflow-x: auto;
 }
 
+.finops-table-pager {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--fn-space-xs);
+    justify-content: center;
+    padding: var(--fn-space-sm);
+    background: var(--fn-bg-elevated);
+    border: 1px solid var(--fn-border);
+    border-top: none;
+}
+
+.finops-page-list {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.finops-page-link,
+.finops-page-ellipsis {
+    min-width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--fn-border);
+    border-left: none;
+    background: var(--fn-bg-elevated);
+    color: var(--fn-text);
+    font-family: var(--fn-font-mono);
+    font-size: 12px;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.finops-page-link:first-child,
+.finops-page-ellipsis:first-child {
+    border-left: 1px solid var(--fn-border);
+}
+
+.finops-page-link:hover {
+    background: var(--fn-bg-muted);
+    color: var(--fn-text);
+    text-decoration: none;
+}
+
+.finops-page-link-current {
+    background: #7f95a0;
+    color: white;
+    border-color: #7f95a0;
+}
+
+.finops-page-link-disabled,
+.finops-page-link-disabled:hover {
+    color: var(--fn-text-muted);
+    background: var(--fn-bg-muted);
+    cursor: default;
+}
+
+.finops-page-ellipsis {
+    color: var(--fn-text-muted);
+}
+
+.finops-page-label {
+    font-size: 12px;
+    color: #7f95a0;
+    text-align: center;
+}
+
 .finops-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
 }
 
-.finops-table thead {
-    background: var(--fn-bg-muted);
-}
-
 .finops-table th {
-    font-family: var(--fn-font-mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
     color: var(--fn-text-secondary);
-    padding: var(--fn-space-sm);
+    padding: 6px 8px;
     text-align: left;
     white-space: nowrap;
     border-bottom: 1px solid var(--fn-border);
@@ -320,10 +382,10 @@ html[theme="hc-dark"] .finops-container {
 }
 
 .finops-table td {
-    padding: var(--fn-space-sm);
+    padding: 5px 8px;
     border-bottom: 1px solid var(--fn-border);
     color: var(--fn-text-secondary);
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .finops-table tbody tr:hover {
@@ -343,13 +405,11 @@ html[theme="hc-dark"] .finops-container {
 }
 
 .finops-table tr.finops-row-high-waste td:first-child {
-    border-left: 2px solid var(--fn-accent);
+    border-left: 3px solid var(--fn-accent);
 }
 
 .finops-cell-host {
-    font-family: var(--fn-font-mono);
     font-weight: 500;
-    font-size: 13px;
     color: var(--fn-text);
 }
 
@@ -359,9 +419,9 @@ html[theme="hc-dark"] .finops-container {
 }
 
 .finops-cell-metric {
-    font-family: var(--fn-font-mono);
     text-align: right;
     color: var(--fn-text-secondary);
+    white-space: nowrap;
 }
 
 .finops-cell-metric--low {
@@ -384,9 +444,8 @@ html[theme="hc-dark"] .finops-container {
 .finops-badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 8px;
-    font-family: var(--fn-font-mono);
-    font-size: 11px;
+    padding: 1px 6px;
+    font-size: 12px;
     font-weight: 500;
     border: 1px solid var(--fn-border);
     background: var(--fn-bg);
@@ -394,8 +453,8 @@ html[theme="hc-dark"] .finops-container {
 }
 
 .finops-badge--high {
-    background: var(--fn-accent);
-    color: white;
+    background: transparent;
+    color: var(--fn-accent);
     border-color: var(--fn-accent);
 }
 
@@ -411,14 +470,13 @@ html[theme="hc-dark"] .finops-container {
 }
 
 .finops-badge--healthy {
-    background: var(--fn-success);
-    color: white;
+    background: transparent;
+    color: var(--fn-success);
     border-color: var(--fn-success);
 }
 
 .finops-trend {
-    font-family: var(--fn-font-mono);
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .finops-trend-item {
@@ -441,9 +499,25 @@ html[theme="hc-dark"] .finops-container {
 
 .finops-recommendation {
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.3;
     color: var(--fn-text-secondary);
-    max-width: 250px;
+    max-width: 320px;
+}
+
+.finops-cell-compact {
+    min-width: 86px;
+}
+
+.finops-metric-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
+.finops-metric-label {
+    color: var(--fn-text-muted);
 }
 
 .finops-empty-state {
