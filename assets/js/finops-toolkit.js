@@ -93,6 +93,39 @@
     }
 
     /**
+     * Host menu popup compatibility.
+     *
+     * Zabbix host context menus call view.editHost() for the Configuration -> Host
+     * entry. Module pages do not get the monitoring host page's view object, so
+     * provide the small method needed by the native menu.
+     */
+    function initHostPopupActions() {
+        window.view = window.view || {};
+
+        if (typeof window.view.editHost === 'function') {
+            return;
+        }
+
+        window.view.editHost = function(arg, hostid) {
+            if (arg instanceof Event) {
+                arg.preventDefault();
+            }
+
+            const resolvedHostid = hostid || arg;
+
+            if (!resolvedHostid || typeof window.PopUp !== 'function') {
+                return;
+            }
+
+            window.PopUp('popup.host.edit', {hostid: resolvedHostid}, {
+                dialogueid: 'host_edit',
+                dialogue_class: 'modal-popup-large',
+                prevent_navigation: true
+            });
+        };
+    }
+
+    /**
      * Initialize
      */
     function init() {
@@ -104,6 +137,7 @@
         initSortFeedback();
         initExportBtn();
         initTagFilter();
+        initHostPopupActions();
     }
 
     if (document.readyState === 'loading') {

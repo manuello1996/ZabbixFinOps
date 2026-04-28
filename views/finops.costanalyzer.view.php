@@ -377,8 +377,11 @@ foreach ($results as $r) {
         ]))->addClass('finops-badge ' . $eff_class)
         : (new CSpan('N/A'))->addClass('finops-cell-metric--na');
 
+    $host_link = (new CLinkAction($r['host_name']))
+        ->setMenuPopup(CMenuPopupHelper::getHost($r['hostid']));
+
     $row = new CRow([
-        (new CCol($r['host_name']))->addClass('finops-cell-host'),
+        (new CCol($host_link))->addClass('finops-cell-host'),
         (new CCol($r['host_groups']))->addClass('finops-cell-group'),
         (new CCol([
             formatCompactMetric(_('Avg'), $r['cpu_avg'], 20, 60),
