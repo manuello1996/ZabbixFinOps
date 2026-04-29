@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Avoid loading all hosts, host items, trend data, or host groups when the Cost Analyzer opens without a host, host group, or tag filter.
 - Replace the free-text host filter with Zabbix's native host lookup/autocomplete field.
+- Analyze only the current page of hosts in the interactive view to keep item and trend queries bounded for large host groups.
 
 ## [1.0.0] - 2026-03-09
 

@@ -62,20 +62,28 @@ class CostAnalyzerService {
 			];
 		}
 
-		$hosts = $this->getHosts($filters);
-		$host_items = $this->getHostItems(array_keys($hosts));
-		$hosts = array_filter($hosts, function ($hostid) use ($host_items) {
-			return isset($host_items[$hostid]);
-		}, ARRAY_FILTER_USE_KEY);
+		$hosts = $this->getHosts($filters, false);
 		$total_hosts = count($hosts);
 		$page_count = max(1, (int) ceil($total_hosts / $page_size));
 		$page = max(1, min($page, $page_count));
 		$offset = ($page - 1) * $page_size;
-		$all_results = $this->analyzeHosts($hosts, $sort, $sortorder, $host_items);
+		$page_hosts = array_slice($hosts, $offset, $page_size, true);
+
+		if ($page_hosts) {
+			$page_filters = $filters;
+			$page_filters['hostids'] = array_keys($page_hosts);
+			$page_hosts = $this->getHosts($page_filters);
+		}
+
+		$page_host_items = $this->getHostItems(array_keys($page_hosts));
+		$page_hosts = array_filter($page_hosts, function ($hostid) use ($page_host_items) {
+			return isset($page_host_items[$hostid]);
+		}, ARRAY_FILTER_USE_KEY);
+		$results = $this->analyzeHosts($page_hosts, $sort, $sortorder, $page_host_items);
 
 		return [
-			'results' => array_slice($all_results, $offset, $page_size),
-			'summary' => $this->buildSummary($all_results),
+			'results' => $results,
+			'summary' => $this->buildSummary($results),
 			'total_hosts' => $total_hosts,
 			'page' => $page,
 			'page_count' => $page_count,
@@ -304,10 +312,9 @@ class CostAnalyzerService {
 		return $data;
 	}
 
-	private function getHosts(array $filters): array {
+	private function getHosts(array $filters, bool $select_host_groups = true): array {
 		$options = [
 			'output' => ['hostid', 'host', 'name'],
-			'selectHostGroups' => ['groupid', 'name'],
 			'filter' => [
 				'status' => ($filters['status'] == -1)
 					? [HOST_STATUS_MONITORED, HOST_STATUS_NOT_MONITORED]
@@ -317,6 +324,10 @@ class CostAnalyzerService {
 			'sortorder' => ZBX_SORT_UP,
 			'preservekeys' => true
 		];
+
+		if ($select_host_groups) {
+			$options['selectHostGroups'] = ['groupid', 'name'];
+		}
 
 		if ((int) $filters['show_maintenance'] === HOST_MAINTENANCE_STATUS_OFF) {
 			$options['filter']['maintenance_status'] = HOST_MAINTENANCE_STATUS_OFF;

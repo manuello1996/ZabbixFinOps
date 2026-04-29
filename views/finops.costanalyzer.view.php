@@ -134,13 +134,13 @@ $summary = (new CDiv([
 
     // Oversized Card
     (new CDiv([
-        (new CSpan(_('Oversized')))->addClass('finops-stat-label'),
+        (new CSpan(_('Page Oversized')))->addClass('finops-stat-label'),
         (new CSpan((string)$oversized_count))->addClass('finops-stat-value')
     ]))->addClass('finops-stat-card finops-stat-card--warning'),
 
     // High Waste Card
     (new CDiv([
-        (new CSpan(_('Critical Waste')))->addClass('finops-stat-label'),
+        (new CSpan(_('Page Critical Waste')))->addClass('finops-stat-label'),
         (new CSpan((string)$high_waste_count))->addClass('finops-stat-value')
     ]))->addClass('finops-stat-card finops-stat-card--critical'),
 
