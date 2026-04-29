@@ -35,10 +35,25 @@ $filter = (new CFilter())
         (new CFormGrid())
             ->addClass(CFormGrid::ZBX_STYLE_FORM_GRID_LABEL_WIDTH_TRUE)
             ->addItem([
-                new CLabel(_('Host'), 'filter_host'),
+                new CLabel(_('Host'), 'filter_hostids__ms'),
                 new CFormField(
-                    (new CTextBox('filter_host', $data['filter_host']))
-                        ->setWidth(ZBX_TEXTAREA_FILTER_STANDARD_WIDTH)
+                    (new CMultiSelect([
+                        'name' => 'filter_hostids[]',
+                        'object_name' => 'hosts',
+                        'data' => $data['hosts'],
+                        'popup' => [
+                            'filter_preselect' => [
+                                'id' => 'filter_groupids_',
+                                'submit_as' => 'groupid'
+                            ],
+                            'parameters' => [
+                                'srctbl' => 'hosts',
+                                'srcfld1' => 'hostid',
+                                'dstfrm' => 'zbx_filter',
+                                'dstfld1' => 'filter_hostids_'
+                            ]
+                        ]
+                    ]))->setWidth(ZBX_TEXTAREA_FILTER_STANDARD_WIDTH)
                 )
             ])
             ->addItem([
@@ -147,8 +162,10 @@ function finops_add_filter_arguments($url, array $data) {
         }
     }
 
-    if (($data['filter_host'] ?? '') !== '') {
-        $url->setArgument('filter_host', $data['filter_host']);
+    if (!empty($data['filter_hostids'])) {
+        foreach (array_values($data['filter_hostids']) as $index => $hostid) {
+            $url->setArgument('filter_hostids['.$index.']', $hostid);
+        }
     }
 
     if (($data['filter_status'] ?? -1) != -1) {
@@ -435,7 +452,7 @@ if (empty($results)) {
         (new CCol(
             (new CDiv([
                 (new CTag('h3', true, _('No Data Available')))->addClass('finops-empty-title'),
-                (new CSpan(_('Select host groups and apply filters to see cost analysis.')))->addClass('finops-empty-text')
+                (new CSpan(_('Select a host, host group, or tag filter to see cost analysis.')))->addClass('finops-empty-text')
             ]))->addClass('finops-empty-state')
         ))->setColSpan(11)
     );

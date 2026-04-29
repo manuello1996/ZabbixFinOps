@@ -19,7 +19,7 @@ class CostAnalyzer extends CController {
 	protected function checkInput(): bool {
 		$fields = [
 			'filter_groupids' => 'array',
-			'filter_host' => 'string',
+			'filter_hostids' => 'array',
 			'filter_status' => 'in -1,'.HOST_STATUS_MONITORED.','.HOST_STATUS_NOT_MONITORED,
 			'filter_show_maintenance' => 'in '.HOST_MAINTENANCE_STATUS_OFF.','.HOST_MAINTENANCE_STATUS_ON,
 			'filter_evaltype' => 'in '.TAG_EVAL_TYPE_AND_OR.','.TAG_EVAL_TYPE_OR,
@@ -64,9 +64,10 @@ class CostAnalyzer extends CController {
 		$data = [
 			'results' => $analysis['results'],
 			'summary' => $analysis['summary'],
-			'host_groups' => $service->getHostGroups(),
+			'host_groups' => $service->getHostGroups($filters['groupids']),
+			'hosts' => $service->getHostsForMultiselect($filters['hostids']),
 			'filter_groupids' => $filters['groupids'],
-			'filter_host' => $filters['host'],
+			'filter_hostids' => $filters['hostids'],
 			'filter_status' => $filters['status'],
 			'filter_show_maintenance' => $filters['show_maintenance'],
 			'filter_evaltype' => $filters['evaltype'],
@@ -89,7 +90,7 @@ class CostAnalyzer extends CController {
 	private function getFilterInput(): array {
 		return [
 			'groupids' => $this->getInput('filter_groupids', []),
-			'host' => $this->getInput('filter_host', ''),
+			'hostids' => $this->getInput('filter_hostids', []),
 			'status' => $this->getInput('filter_status', -1),
 			'show_maintenance' => $this->getInput('filter_show_maintenance', HOST_MAINTENANCE_STATUS_OFF),
 			'evaltype' => $this->getInput('filter_evaltype', TAG_EVAL_TYPE_AND_OR),

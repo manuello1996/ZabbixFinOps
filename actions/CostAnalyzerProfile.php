@@ -12,7 +12,8 @@ class CostAnalyzerProfile {
 		$filters = self::normalize($filters);
 
 		CProfile::updateArray(self::PROFILE_FILTER.'.groupids', $filters['groupids'], PROFILE_TYPE_ID);
-		CProfile::update(self::PROFILE_FILTER.'.host', $filters['host'], PROFILE_TYPE_STR);
+		CProfile::updateArray(self::PROFILE_FILTER.'.hostids', $filters['hostids'], PROFILE_TYPE_ID);
+		CProfile::delete(self::PROFILE_FILTER.'.host');
 		CProfile::update(self::PROFILE_FILTER.'.status', $filters['status'], PROFILE_TYPE_INT);
 		CProfile::update(self::PROFILE_FILTER.'.show_maintenance',
 			$filters['show_maintenance'], PROFILE_TYPE_INT
@@ -39,6 +40,7 @@ class CostAnalyzerProfile {
 
 	public static function reset(): void {
 		CProfile::deleteIdx(self::PROFILE_FILTER.'.groupids');
+		CProfile::deleteIdx(self::PROFILE_FILTER.'.hostids');
 		CProfile::delete(self::PROFILE_FILTER.'.host');
 		CProfile::delete(self::PROFILE_FILTER.'.status');
 		CProfile::delete(self::PROFILE_FILTER.'.show_maintenance');
@@ -60,7 +62,7 @@ class CostAnalyzerProfile {
 
 		return [
 			'groupids' => CProfile::getArray(self::PROFILE_FILTER.'.groupids', []),
-			'host' => CProfile::get(self::PROFILE_FILTER.'.host', ''),
+			'hostids' => CProfile::getArray(self::PROFILE_FILTER.'.hostids', []),
 			'status' => CProfile::get(self::PROFILE_FILTER.'.status', -1),
 			'show_maintenance' => CProfile::get(self::PROFILE_FILTER.'.show_maintenance',
 				HOST_MAINTENANCE_STATUS_ON
@@ -73,7 +75,7 @@ class CostAnalyzerProfile {
 	public static function normalize(array $filters): array {
 		$filters += [
 			'groupids' => [],
-			'host' => '',
+			'hostids' => [],
 			'status' => -1,
 			'show_maintenance' => HOST_MAINTENANCE_STATUS_ON,
 			'evaltype' => TAG_EVAL_TYPE_AND_OR,
@@ -82,7 +84,7 @@ class CostAnalyzerProfile {
 
 		return [
 			'groupids' => array_values((array) $filters['groupids']),
-			'host' => trim((string) $filters['host']),
+			'hostids' => array_values((array) $filters['hostids']),
 			'status' => (int) $filters['status'],
 			'show_maintenance' => (int) $filters['show_maintenance'],
 			'evaltype' => (int) $filters['evaltype'],

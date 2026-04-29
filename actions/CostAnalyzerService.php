@@ -30,6 +30,13 @@ class CostAnalyzerService {
 
 	public function analyze(array $filters = [], string $sort = 'waste_score', string $sortorder = 'DESC'): array {
 		$filters = $this->normalizeFilters($filters);
+		if (!$this->hasAnalysisScope($filters)) {
+			return [
+				'results' => [],
+				'summary' => $this->buildSummary([])
+			];
+		}
+
 		$hosts = $this->getHosts($filters);
 		$results = $this->analyzeHosts($hosts, $sort, $sortorder);
 
@@ -43,6 +50,18 @@ class CostAnalyzerService {
 			int $page = 1, int $page_size = 50): array {
 		$filters = $this->normalizeFilters($filters);
 		$page_size = max(1, $page_size);
+
+		if (!$this->hasAnalysisScope($filters)) {
+			return [
+				'results' => [],
+				'summary' => $this->buildSummary([]),
+				'total_hosts' => 0,
+				'page' => 1,
+				'page_count' => 1,
+				'page_size' => $page_size
+			];
+		}
+
 		$hosts = $this->getHosts($filters);
 		$host_items = $this->getHostItems(array_keys($hosts));
 		$hosts = array_filter($hosts, function ($hostid) use ($host_items) {
@@ -66,6 +85,10 @@ class CostAnalyzerService {
 
 	public function analyzeForExport(array $filters = [], int $chunk_size = self::EXPORT_HOST_CHUNK_SIZE): \Generator {
 		$filters = $this->normalizeFilters($filters);
+		if (!$this->hasAnalysisScope($filters)) {
+			return;
+		}
+
 		$hosts = $this->getHosts($filters);
 
 		foreach (array_chunk($hosts, max(1, $chunk_size), true) as $host_chunk) {
@@ -78,7 +101,7 @@ class CostAnalyzerService {
 	private function normalizeFilters(array $filters): array {
 		$filters += [
 			'groupids' => [],
-			'host' => '',
+			'hostids' => [],
 			'status' => -1,
 			'show_maintenance' => HOST_MAINTENANCE_STATUS_ON,
 			'evaltype' => TAG_EVAL_TYPE_AND_OR,
@@ -86,13 +109,21 @@ class CostAnalyzerService {
 		];
 
 		$filters['groupids'] = array_values((array) $filters['groupids']);
-		$filters['host'] = trim((string) $filters['host']);
+		$filters['hostids'] = array_values(array_filter((array) $filters['hostids'], static function ($hostid): bool {
+			return (string) $hostid !== '';
+		}));
 		$filters['status'] = (int) $filters['status'];
 		$filters['show_maintenance'] = (int) $filters['show_maintenance'];
 		$filters['evaltype'] = (int) $filters['evaltype'];
 		$filters['tags'] = (array) $filters['tags'];
 
 		return $filters;
+	}
+
+	private function hasAnalysisScope(array $filters): bool {
+		return !empty($filters['groupids'])
+			|| !empty($filters['hostids'])
+			|| !empty($this->normalizeTags($filters['tags']));
 	}
 
 	private function analyzeHosts(array $hosts, string $sort, string $sortorder, ?array $host_items = null): array {
@@ -231,12 +262,46 @@ class CostAnalyzerService {
 		return $results;
 	}
 
-	public function getHostGroups(): array {
+	public function getHostGroups(array $groupids = []): array {
+		$groupids = array_values(array_filter((array) $groupids, static function ($groupid): bool {
+			return (string) $groupid !== '';
+		}));
+
+		if (empty($groupids)) {
+			return [];
+		}
+
 		return API::HostGroup()->get([
 			'output' => ['groupid', 'name'],
-			'with_hosts' => true,
+			'groupids' => $groupids,
 			'preservekeys' => true
 		]);
+	}
+
+	public function getHostsForMultiselect(array $hostids = []): array {
+		$hostids = array_values(array_filter((array) $hostids, static function ($hostid): bool {
+			return (string) $hostid !== '';
+		}));
+
+		if (empty($hostids)) {
+			return [];
+		}
+
+		$hosts = API::Host()->get([
+			'output' => ['hostid', 'name'],
+			'hostids' => $hostids,
+			'preservekeys' => true
+		]);
+
+		$data = [];
+		foreach ($hosts as $host) {
+			$data[] = [
+				'id' => $host['hostid'],
+				'name' => $host['name']
+			];
+		}
+
+		return $data;
 	}
 
 	private function getHosts(array $filters): array {
@@ -261,12 +326,8 @@ class CostAnalyzerService {
 			$options['groupids'] = $filters['groupids'];
 		}
 
-		if ($filters['host'] !== '') {
-			$options['search'] = [
-				'name' => $filters['host'],
-				'host' => $filters['host']
-			];
-			$options['searchByAny'] = true;
+		if (!empty($filters['hostids'])) {
+			$options['hostids'] = $filters['hostids'];
 		}
 
 		$tags = $this->normalizeTags($filters['tags']);
